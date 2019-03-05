@@ -1,3 +1,6 @@
-<p>
-  infinte-scroll works!
-</p>
+<cdk-virtual-scroll-viewport itemSize="100">
+  <li *cdkVirtualFor="let p of (photos$ | async)">
+      {{ p.id }}
+      {{ p.author }}
+  </li>
+</cdk-virtual-scroll-viewport>
