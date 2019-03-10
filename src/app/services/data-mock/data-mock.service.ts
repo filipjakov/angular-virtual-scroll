@@ -47,7 +47,9 @@ export class DataMockService {
       map((data: Array<IDataMock>): Array<IDataMock> => {
         // No need to worry about overflow, slice handles it
         const end = start + offset;
-        return data.slice(start, end < 100 ? end : 100);
+        const limit = 200;
+
+        return data.slice(start, end < limit ? end : limit);
       }),
       catchError(this.handleError('getPhotosBatch', [])),
     );
