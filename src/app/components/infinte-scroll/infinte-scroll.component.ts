@@ -3,7 +3,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { IDataMock } from 'src/app/interfaces/data-mock.interface';
 import { DataMockService } from 'src/app/services/data-mock/data-mock.service';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { pairwise, startWith, scan, mergeMap, tap, throttleTime } from 'rxjs/operators';
+import { scan, mergeMap, tap, throttleTime } from 'rxjs/operators';
 import { ChangeDetectorRef } from '@angular/core';
 
 
@@ -13,7 +13,7 @@ import { ChangeDetectorRef } from '@angular/core';
   styleUrls: ['./infinte-scroll.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class InfinteScrollComponent implements OnInit, OnDestroy{
+export class InfinteScrollComponent implements OnInit {
   @ViewChild(CdkVirtualScrollViewport) private viewPort: CdkVirtualScrollViewport;
   public offset: BehaviorSubject<number> = new BehaviorSubject(0);
   public photos$: Observable<Array<IDataMock>>;
@@ -23,14 +23,16 @@ export class InfinteScrollComponent implements OnInit, OnDestroy{
 
   constructor(
     private dataMockService: DataMockService,
-    private ref: ChangeDetectorRef,
   ) { }
 
   public ngOnInit(): void {
     this.photos$ = this.offset.pipe(
       throttleTime(500),
       mergeMap(n => this.getBatch(n)),
-      scan((acc, batch) => [...acc, ...batch], []),
+      // Reduce over time
+      scan((previousBatches: Array<IDataMock>, currentBatch: Array<IDataMock>) => {
+        return [...previousBatches, ...currentBatch];
+      }, []),
     );
   }
 
@@ -39,17 +41,13 @@ export class InfinteScrollComponent implements OnInit, OnDestroy{
     const total = this.viewPort.getDataLength();
 
     if (end === total) {
-      // console.log(offset);
       this.offset.next(offset);
     }
   }
 
-  public getBatch(n: number): Observable<Array<IDataMock>> {
-    return this.dataMockService.getPhotosBatch(n, this.batchSize).pipe(
+  public getBatch(start: number): Observable<Array<IDataMock>> {
+    return this.dataMockService.getPhotosBatch(start, this.batchSize).pipe(
       tap((data: Array<IDataMock>) => data.length > 0 ? null : (this.end = true)),
     );
-  }
-
-  public ngOnDestroy(): void {
   }
 }
