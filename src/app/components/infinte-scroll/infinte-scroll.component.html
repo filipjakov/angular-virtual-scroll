@@ -1,6 +1,11 @@
-<cdk-virtual-scroll-viewport itemSize="100">
-  <li *cdkVirtualFor="let p of (photos$ | async)">
+<ng-container *ngIf="photos$ | async as people">
+  <cdk-virtual-scroll-viewport
+    itemSize="100"
+    (scrolledIndexChange)="nextBatch($event)"
+  >
+    <li *cdkVirtualFor="let p of (photos$ | async)" class="animated slideInRight">
       {{ p.id }}
       {{ p.author }}
-  </li>
-</cdk-virtual-scroll-viewport>
+    </li>
+  </cdk-virtual-scroll-viewport>
+</ng-container>
